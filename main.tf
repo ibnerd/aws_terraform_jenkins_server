@@ -10,7 +10,7 @@ resource "aws_security_group" "jenkins_sg" {
   name        = "jenkins_sg"
   description = "Allow Jenkins Traffic"
   vpc_id      = var.vpc_id
-
+#inbound http only from the specified IPs var.cidr_block
   ingress {
     description      = "Allow from Personal CIDR block"
     from_port        = 8080
@@ -18,7 +18,7 @@ resource "aws_security_group" "jenkins_sg" {
     protocol         = "tcp"
     cidr_blocks      = [var.cidr_block]
   }
-
+#inbound ssh only from the specified IPs var.cidr_block
   ingress {
     description      = "Allow SSH from Personal CIDR block"
     from_port        = 22
@@ -26,7 +26,7 @@ resource "aws_security_group" "jenkins_sg" {
     protocol         = "tcp"
     cidr_blocks      = [var.cidr_block]
   }
-
+#allows outbound traffic to anywhere
   egress {
     from_port        = 0
     to_port          = 0
@@ -63,8 +63,8 @@ data "aws_ami" "amazon_linux" {
 #start t2micro ec2 instance 
 resource "aws_instance" "web" {
   ami             = data.aws_ami.amazon_linux.id
-  instance_type   = "t2.micro"
-  key_name        = var.key_name
+  instance_type   = "t2.micro" #free tier
+  key_name        = var.key_name #key pair must already exist in AWS
   security_groups = [aws_security_group.jenkins_sg.name]
   user_data       = "${file("install_jenkins.sh")}"
   tags = {
