@@ -60,12 +60,62 @@ data "aws_ami" "amazon_linux" {
 
   owners = ["amazon"] # Canonical
 }
+
+#create admin IAM role for the instance 
+resource "aws_iam_role" "admin_jenkins_role" {
+  name = "admin_jenkins_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+#create EC2 instance profile
+resource "aws_iam_instance_profile" "admin_jenkins_profile" {
+  name = "admin_jenkins_profile"
+  role = "${aws_iam_role.admin_jenkins_role.name}"
+}
+
+#Create IAM Policies for the IAM role
+resource "aws_iam_role_policy" "admin_policy" {
+  name = "admin_policy"
+  role = "${aws_iam_role.admin_jenkins_role.id}"
+#the below policy gives full admin rights to jenkins server be careful with this
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "*"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
 #start t2micro ec2 instance 
 resource "aws_instance" "web" {
   ami             = data.aws_ami.amazon_linux.id
   instance_type   = "t2.micro" #free tier
   key_name        = var.key_name #key pair must already exist in AWS
   security_groups = [aws_security_group.jenkins_sg.name]
+  iam_instance_profile = "${aws_iam_instance_profile.admin_jenkins_profile.name}"
   user_data       = "${file("install_jenkins.sh")}"
   tags = {
     Name = "Jenkins"
