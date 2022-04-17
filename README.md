@@ -1,4 +1,10 @@
-# Terraform Starter
+# AWS Jenkins Server 
+Provision an EC2 ubuntu server in AWS running Jenkins. 
+This assumes you already have both Terraform and AWS CLI installed and configured
+
+## In Progress
+Need to add ebs snapshots and restore from those if avaliable 
+add and configure lets encrypt to allow https connections 
 
 ## Step 0: Create `.tfvars` file
 ```
